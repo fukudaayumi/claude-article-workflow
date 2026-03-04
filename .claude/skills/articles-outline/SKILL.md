@@ -19,7 +19,8 @@ description: Use when the user wants to create an SEO article outline (骨子). 
 
 ## ステップ2：キーワード情報をファイルから取得する
 
-`keywords/all_keywords.md` を読み込み、指定された記事Noの行を抽出する。
+`Grep` ツールで `keywords/all_keywords.md` を検索し、記事No列が指定番号に一致する行のみを取得する。
+ファイル全体を Read で読み込まないこと。
 
 - **メインキーワード**：★ が付いた行の「クエリ」列の値
 - **サブキーワード**：★ のない行の「クエリ」列の値（空欄を除く）をすべて取得
