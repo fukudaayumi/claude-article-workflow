@@ -1,6 +1,6 @@
 ---
 name: articles-create
-description: Execute the full article creation pipeline in sequence: outline (articles-outline) → body writing (articles-write) → independent review by a separate agent (articles-review). The reviewer runs in an isolated context with no knowledge of the creation process.
+description: Execute the full article creation pipeline in sequence: outline (articles-outline) → body writing (articles-write) → independent review by a separate agent (articles-review). Only the article number is required; keywords and competitor URL are auto-fetched from keywords/all_keywords.md. The reviewer runs in an isolated context with no knowledge of the creation process.
 ---
 
 # 記事制作フル実行スキル
