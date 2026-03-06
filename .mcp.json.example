@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "ahrefs": {
+      "command": "npx",
+      "args": ["-y", "@ahrefs/mcp-server"],
+      "env": {
+        "AHREFS_API_KEY": "your_api_key_here"
+      }
+    }
+  }
+}
