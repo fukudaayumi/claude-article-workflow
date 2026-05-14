@@ -1,0 +1,8 @@
+{
+  "name": "WMブログバナー生成",
+  "id": "wm-blog-banner-generator",
+  "api": "1.0.0",
+  "main": "code.js",
+  "ui": "ui.html",
+  "editorType": ["figma"]
+}

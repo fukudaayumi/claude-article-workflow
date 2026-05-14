@@ -1,0 +1,24 @@
+{
+  "name": "claude-article-workflow",
+  "version": "1.0.0",
+  "description": "Claude Code を使った SEO ブログ記事制作の自動化ワークフローです。",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fukudaayumi/claude-article-workflow.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/fukudaayumi/claude-article-workflow/issues"
+  },
+  "homepage": "https://github.com/fukudaayumi/claude-article-workflow#readme",
+  "dependencies": {
+    "sharp": "^0.34.5"
+  }
+}

@@ -805,10 +805,10 @@
 	197	将来性のある仕事 女性	250		
 	197	将来性のある仕事 高収入	200		
 	197	将来性のある職業			
-★	198	客先常駐	3,000	0	https://proengineer.internous.co.jp/content/columnfeature/16644
-	198	客先常駐とは	1,900		
-	198	客先常駐 派遣 違い	250		
-	198	客先常駐 楽しい	200		
+★	198	apiとは	30,000	6	https://www.sejuku.net/blog/application-programming-interface
+	198	api とは	13,000
+	198	api連携	10,000
+	198	rest api	9,700		
 ★	199	エンジニア ロードマップ	2,700		
 	199	セキュリティエンジニア ロードマップ	350		
 	199	クラウドエンジニア ロードマップ	300		

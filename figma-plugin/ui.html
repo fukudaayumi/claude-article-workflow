@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>WMブログ バナー生成</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 13px;
+      color: #333;
+      padding: 16px;
+      background: #fff;
+    }
+    h2 { font-size: 15px; font-weight: 600; margin-bottom: 12px; color: #111; }
+
+
+    /* タブ */
+    .tabs { display: flex; border-bottom: 2px solid #eee; margin-bottom: 16px; }
+    .tab {
+      flex: 1; padding: 8px; text-align: center; cursor: pointer;
+      font-weight: 600; font-size: 12px; color: #888;
+      border-bottom: 2px solid transparent; margin-bottom: -2px;
+    }
+    .tab.active { color: #21b98e; border-bottom-color: #21b98e; }
+
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    label { display: block; font-weight: 500; margin-bottom: 4px; color: #555; }
+    input, select, textarea {
+      width: 100%; padding: 8px 10px;
+      border: 1px solid #ddd; border-radius: 6px;
+      font-size: 13px; margin-bottom: 12px; outline: none;
+      transition: border-color 0.2s;
+    }
+    input:focus, select:focus, textarea:focus { border-color: #21b98e; }
+    textarea { height: 160px; resize: vertical; font-family: monospace; font-size: 11px; }
+
+    .section { display: none; }
+    .section.active { display: block; }
+    .item-label { font-size: 11px; color: #888; margin-bottom: 3px; margin-top: 2px; }
+
+    .hint {
+      font-size: 11px; color: #888; background: #f7f7f7;
+      border-radius: 6px; padding: 8px 10px; margin-bottom: 12px; line-height: 1.6;
+    }
+
+    .buttons { display: flex; gap: 8px; margin-top: 4px; }
+    button {
+      flex: 1; padding: 9px; border: none; border-radius: 6px;
+      font-size: 13px; font-weight: 600; cursor: pointer; transition: opacity 0.2s;
+    }
+    button:hover { opacity: 0.85; }
+    .btn-primary { background: #21b98e; color: #fff; }
+    .btn-secondary { background: #f0f0f0; color: #555; }
+
+    #message {
+      margin-top: 12px; padding: 8px 12px;
+      border-radius: 6px; font-size: 12px; display: none;
+    }
+    #message.success { background: #e6f9f3; color: #1a8a6a; display: block; }
+    #message.error   { background: #fdecea; color: #c0392b; display: block; }
+  </style>
+</head>
+<body>
+  <h2>WMブログ バナー生成</h2>
+
+<div class="tabs">
+    <div class="tab active" data-tab="bulk">一括生成（AI）</div>
+    <div class="tab" data-tab="manual">手動入力</div>
+  </div>
+
+  <!-- 一括生成パネル -->
+  <div id="panel-bulk" class="panel active">
+    <div class="hint">
+      Claude Code に「記事○○のバナーを作って」と依頼すると<br>
+      自動でデータが検出されます。または JSON を直接貼り付けてください。
+    </div>
+    <label for="json-input">バナーデータ JSON</label>
+    <textarea id="json-input" placeholder="Claude Code が出力した JSON をここに貼り付けてください"></textarea>
+    <div class="buttons">
+      <button class="btn-primary" id="btn-bulk">一括作成</button>
+      <button class="btn-secondary" id="btn-cancel-bulk">キャンセル</button>
+    </div>
+  </div>
+
+  <!-- 手動入力パネル -->
+  <div id="panel-manual" class="panel">
+    <label for="article-no">記事番号</label>
+    <input type="text" id="article-no" placeholder="例: 131" />
+
+    <label for="banner-type">バナー種別</label>
+    <select id="banner-type">
+      <option value="タイトルバナー">タイトルバナー</option>
+      <option value="ポジティブ">ポジティブ</option>
+      <option value="ネガティブ">ネガティブ</option>
+      <option value="その他">その他</option>
+    </select>
+
+    <div id="section-title" class="section active">
+      <label for="title">記事タイトル</label>
+      <input type="text" id="title" placeholder="例: OSとは？..." />
+    </div>
+
+    <div id="section-list" class="section">
+      <label for="list-title">リストタイトル</label>
+      <input type="text" id="list-title" placeholder="例: こんな人におすすめ" />
+      <div class="item-label">項目1</div>
+      <input type="text" class="item" placeholder="項目1" />
+      <div class="item-label">項目2</div>
+      <input type="text" class="item" placeholder="項目2" />
+      <div class="item-label">項目3</div>
+      <input type="text" class="item" placeholder="項目3" />
+      <div class="item-label">項目4（任意）</div>
+      <input type="text" class="item" placeholder="項目4（任意）" />
+    </div>
+
+    <div class="buttons">
+      <button class="btn-primary" id="btn-create">作成</button>
+      <button class="btn-secondary" id="btn-cancel">キャンセル</button>
+    </div>
+  </div>
+
+  <div id="message"></div>
+
+  <script>
+    // 起動時にローカルサーバーを検出 → 即時実行
+    (async function checkLocalServer() {
+      try {
+        const res = await fetch('http://localhost:3737', { signal: AbortSignal.timeout(2000) });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!data.articleNo || !data.banners) return;
+
+        // 検出したら即座にバナー作成を実行
+        showMessage(`記事${data.articleNo}のバナーを自動作成中...`, 'success');
+        parent.postMessage({ pluginMessage: { type: 'create-bulk', json: JSON.stringify(data) } }, '*');
+      } catch (e) {
+        // サーバーが起動していない場合は通常UIを表示
+      }
+    })();
+
+    // タブ切り替え
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
+      });
+    });
+
+    // 手動：バナー種別切り替え
+    document.getElementById('banner-type').addEventListener('change', function() {
+      const isTitle = this.value === 'タイトルバナー';
+      document.getElementById('section-title').classList.toggle('active', isTitle);
+      document.getElementById('section-list').classList.toggle('active', !isTitle);
+    });
+
+    // 一括生成（JSON貼り付け）
+    document.getElementById('btn-bulk').addEventListener('click', () => {
+      const json = document.getElementById('json-input').value.trim();
+      if (!json) { showMessage('JSONを入力してください', 'error'); return; }
+      parent.postMessage({ pluginMessage: { type: 'create-bulk', json } }, '*');
+    });
+
+    // 手動作成
+    document.getElementById('btn-create').addEventListener('click', () => {
+      const articleNo  = document.getElementById('article-no').value.trim();
+      const bannerType = document.getElementById('banner-type').value;
+      if (!articleNo) { showMessage('記事番号を入力してください', 'error'); return; }
+
+      let payload = { type: 'create-banner', articleNo, bannerType };
+      if (bannerType === 'タイトルバナー') {
+        const title = document.getElementById('title').value.trim();
+        if (!title) { showMessage('タイトルを入力してください', 'error'); return; }
+        payload.title = title;
+      } else {
+        const listTitle = document.getElementById('list-title').value.trim();
+        const items = Array.from(document.querySelectorAll('.item')).map(el => el.value.trim());
+        if (!listTitle) { showMessage('リストタイトルを入力してください', 'error'); return; }
+        payload.listTitle = listTitle;
+        payload.items = items;
+      }
+      parent.postMessage({ pluginMessage: payload }, '*');
+    });
+
+    document.getElementById('btn-cancel-bulk').addEventListener('click', () => {
+      parent.postMessage({ pluginMessage: { type: 'cancel' } }, '*');
+    });
+    document.getElementById('btn-cancel').addEventListener('click', () => {
+      parent.postMessage({ pluginMessage: { type: 'cancel' } }, '*');
+    });
+
+    window.onmessage = async (event) => {
+      const msg = event.data.pluginMessage;
+      if (!msg) return;
+      if (msg.type === 'success') showMessage(msg.message, 'success');
+      if (msg.type === 'error')   showMessage(msg.message, 'error');
+
+      // PNG を受け取ってサーバーに送信 → WebP 変換・保存
+      if (msg.type === 'save-image') {
+        try {
+          // UI側（ブラウザ環境）でbase64に変換
+          const uint8 = new Uint8Array(msg.pngData);
+          let binary = '';
+          for (let i = 0; i < uint8.length; i++) binary += String.fromCharCode(uint8[i]);
+          const pngBase64 = btoa(binary);
+
+          const res = await fetch('http://localhost:3737/save-image', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              articleNo: msg.articleNo,
+              frameName: msg.frameName,
+              pngBase64,
+            }),
+          });
+          const result = await res.json();
+          if (result.ok) {
+            showMessage(`✅ 保存完了: articles/${msg.articleNo}/${msg.frameName}.webp`, 'success');
+          } else {
+            showMessage(`画像保存エラー: ${result.error}`, 'error');
+          }
+        } catch (e) {
+          // サーバーが停止済みの場合は無視
+        }
+      }
+    };
+
+    function showMessage(text, type) {
+      const el = document.getElementById('message');
+      el.textContent = text;
+      el.className = type;
+    }
+  </script>
+</body>
+</html>

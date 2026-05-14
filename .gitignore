@@ -1,6 +1,9 @@
 # MCP設定（APIキーを含むため除外）
 .mcp.json
 
+# Node.js
+node_modules/
+
 # キーワード選定の中間ファイル（自動生成）
 keywords/new-keywords.md
 keywords/related-keywords.md
